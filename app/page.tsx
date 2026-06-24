@@ -167,11 +167,11 @@ export default function Home() {
           <h3 style={{ color: "#2d4a38" }} className="font-semibold mb-3">What you can include in your notes</h3>
           <ul style={{ color: "#4a6355" }} className="text-sm space-y-1.5">
             {[
-              "Techniques used — MLD, Swedish, deep tissue, myofascial, prenatal, etc.",
-              "Areas of focus or tension — e.g. "R SCM tight", "L hip restriction"",
-              "Client condition — post-op, lipedema, lymphedema, prenatal week",
-              "Session outcomes — ROM improved, client reported relief, reduced congestion",
-              "Home care or follow-up — hydration, compression, rebooking timeframe",
+              "Techniques used - MLD, Swedish, deep tissue, myofascial, prenatal, etc.",
+              "Areas of focus or tension - e.g. R SCM tight, L hip restriction",
+              "Client condition - post-op, lipedema, lymphedema, prenatal week",
+              "Session outcomes - ROM improved, client reported relief, reduced congestion",
+              "Home care or follow-up - hydration, compression, rebooking timeframe",
             ].map((item) => (
               <li key={item} className="flex items-start gap-2">
                 <span style={{ color: "#7a9e87" }} className="mt-0.5 shrink-0">✓</span>
