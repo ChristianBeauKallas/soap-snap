@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest } from "next/server";
 
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+  apiKey: process.env.SOAP_API,
 });
 
 const SYSTEM_PROMPT = `You are a clinical documentation assistant for a licensed massage therapist who specializes in manual lymphatic drainage (MLD), post-operative recovery, lipedema/lymphedema care, prenatal/postpartum massage, and general therapeutic massage.
