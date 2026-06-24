@@ -153,10 +153,24 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notes }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to generate note.");
-      setSoapNote(data.soapNote);
-      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to generate note.");
+      }
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      if (!reader) throw new Error("No response stream.");
+      let first = true;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const text = decoder.decode(value, { stream: true });
+        setSoapNote((prev) => prev + text);
+        if (first) {
+          first = false;
+          setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+        }
+      }
     } catch (err: any) {
       setError(err.message || "Something went wrong.");
     } finally {

@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -65,38 +65,48 @@ P — Plan
 • Encourage hydration and routine self-care between appointments.
 • Reassess any areas of tension or concern at next visit.`;
 
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
-  try {
-    const { notes } = await req.json();
+  const { notes } = await req.json();
 
-    if (!notes || typeof notes !== "string" || notes.trim().length === 0) {
-      return NextResponse.json(
-        { error: "Please provide some notes to format." },
-        { status: 400 }
-      );
-    }
-
-    const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1000,
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: `Turn these rough session notes into a formatted SOAP note:\n\n${notes}`,
-        },
-      ],
+  if (!notes || typeof notes !== "string" || notes.trim().length === 0) {
+    return new Response(JSON.stringify({ error: "Please provide some notes to format." }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
     });
-
-    const textBlock = message.content.find((block) => block.type === "text");
-    const soapNote = textBlock && "text" in textBlock ? textBlock.text : "";
-
-    return NextResponse.json({ soapNote });
-  } catch (err) {
-    console.error("Error generating SOAP note:", err);
-    return NextResponse.json(
-      { error: "Something went wrong generating the note. Please try again." },
-      { status: 500 }
-    );
   }
+
+  const stream = anthropic.messages.stream({
+    model: "claude-sonnet-4-6",
+    max_tokens: 1000,
+    system: SYSTEM_PROMPT,
+    messages: [
+      {
+        role: "user",
+        content: `Turn these rough session notes into a formatted SOAP note:\n\n${notes}`,
+      },
+    ],
+  });
+
+  const encoder = new TextEncoder();
+  const readable = new ReadableStream({
+    async start(controller) {
+      try {
+        for await (const chunk of stream) {
+          if (chunk.type === "content_block_delta" && chunk.delta.type === "text_delta") {
+            controller.enqueue(encoder.encode(chunk.delta.text));
+          }
+        }
+      } catch (err) {
+        console.error("Streaming error:", err);
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(readable, {
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  });
 }
