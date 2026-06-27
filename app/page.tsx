@@ -193,7 +193,10 @@ export default function Home() {
 
   const handleCopy = async () => {
     if (!soapNote) return;
-    await navigator.clipboard.writeText(soapNote);
+    const text = soapNote;
+    const blob = new Blob([text], { type: "text/plain" });
+    const item = new ClipboardItem({ "text/plain": blob });
+    await navigator.clipboard.write([item]);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
